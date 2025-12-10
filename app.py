@@ -7,22 +7,26 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 from tensorflow.keras.models import load_model
 from sklearn.metrics.pairwise import cosine_similarity
-
+from pathlib import Path
 
 # ============================
 # 🔹 1. Chargement des données
 # ============================
 
+CHECKPOINT = Path("checkpoints")
+EMBEDDINGS_DIR = CHECKPOINT / "embeddings"
+MODELS_DIR = CHECKPOINT / "models"
+
 @st.cache_resource
 def load_data():
     # Load the checkpoint data which has image_path and label columns
-    df = pd.read_csv("checkpoints/data_with_images.csv")
+    df = pd.read_csv(CHECKPOINT / "data_with_images.csv")
     
     # Load SBERT embeddings
-    embeddings_sbert = np.load("embeddings_sbert.npy")
+    embeddings_sbert = np.load(EMBEDDINGS_DIR / "embeddings_sbert.npy")
     
     # Load CNN visual embeddings
-    embeddings_visual = np.load("checkpoints/embeddings/cnn_embeddings.npy")
+    embeddings_visual = np.load(EMBEDDINGS_DIR / "cnn_embeddings.npy")
     
     # Note: data_cleaned.parquet has 1428 rows, embeddings_sbert has 1428 embeddings
     # But checkpoints/data_with_images.csv has only 900 rows (valid images)
@@ -64,7 +68,7 @@ def load_models():
     from tensorflow.keras.models import Sequential as KerasSequential
     
     # CNN - Charger le modèle complet
-    cnn_model = load_model("models/cnn_model.keras", compile=False)
+    cnn_model = load_model(MODELS_DIR / "cnn_model.keras", compile=False)
     
     # Créer le modèle d'embedding (extrait les features de la couche dense_1, pas la sortie de classification)
     # La couche dense_1 produit des embeddings de 256 dimensions
